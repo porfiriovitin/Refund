@@ -6,3 +6,45 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum UserRole {
+  employee
+  manager
+}
+
+enum Category {
+  food
+  others
+  services
+  transport
+  accommodation
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole @default(employee)
+  refunds   Refunds[]
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Refunds {
+  id     Int     @id @default(autoincrement())
+  name   String
+  amount Decimal
+  category Category
+  filename String 
+
+  userId Int @map("user_id")
+  user   User   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("refunds")
+}

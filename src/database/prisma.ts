@@ -7,4 +7,4 @@ const connectionString = `postgresql://${env.POSTGRES_USER}:${env.POSTGRES_PASSW
 
 const pgAdapter = new PrismaPg({connectionString})
 
-export const prisma = new PrismaClient({adapter: pgAdapter})
+export const prisma = new PrismaClient({adapter: pgAdapter, log: ['query']});
