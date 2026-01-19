@@ -10,7 +10,7 @@ export function ensureAuthenticated(
   res: Response,
   next: NextFunction
 ) {
-  const token = req.cookies.token;
+  const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
     throw new AppError("JWT token is missing", 401);
