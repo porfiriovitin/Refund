@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { userSchema } from "@/schemas/user-schema.js";
 import {prisma} from "../database/prisma.js"
-import {hash, compare } from "bcrypt";
-import { AppError } from "@/utils/AppError.js";
+import {hash } from "bcrypt";
 
 class UsersController {
     async create(req: Request, res: Response, next: NextFunction) {
