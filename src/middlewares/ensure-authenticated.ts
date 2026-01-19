@@ -10,13 +10,14 @@ export function ensureAuthenticated(
   res: Response,
   next: NextFunction
 ) {
-  const token = req.headers.authorization?.split(" ")[1];
-
-  if (!token) {
-    throw new AppError("JWT token is missing", 401);
-  }
-
   try {
+    
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+      throw new AppError("JWT token is missing", 401);
+    }
+
     const { secret } = authConfig.jwt;
     const decoded = jwt.verify(token, secret) as TokenPayload;
     req.user = {
