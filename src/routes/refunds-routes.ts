@@ -5,6 +5,6 @@ import { verifyAuthorization } from "@/middlewares/verify-authorization.js";
 const refundsRoutes = Router();
 const refundsController = new RefundsController();
 
-refundsRoutes.post("/", refundsController.create);
+refundsRoutes.post("/", verifyAuthorization(["employee"]), refundsController.create);
 
 export { refundsRoutes };
