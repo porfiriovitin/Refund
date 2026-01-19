@@ -1,7 +1,7 @@
 import { AppError } from "@/utils/AppError.js";
 import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
-import { error } from "node:console";
-import { ZodError } from "zod";
+import { z, ZodError } from "zod";
+import { Prisma } from "../../prisma/generated/client.js";
 
 /// :: Middleware to handle errors globally.
 export const errorHandling: ErrorRequestHandler = (
@@ -14,12 +14,27 @@ export const errorHandling: ErrorRequestHandler = (
     return res.status(err.statusCode).json({ message: err.message });
   }
 
-  if (err instanceof ZodError) {
+   if (err instanceof ZodError) {
+    const flattened = err.flatten();
+
+    const details = err.issues.map((issue) => ({
+      field: issue.path.join("."), 
+      message: issue.message,
+      code: issue.code,
+    }));
+
     return res.status(400).json({
       message: "validation error",
-      errors: err.issues,
+      details: details[0].message,
+      fieldErrors: flattened.fieldErrors,
+      formErrors: flattened.formErrors,
     });
   }
 
-  return res.status(500).json({ message: err.message });
+  if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+    return res.status(409).json({ message: "E-mail already in use" });
+  }
+
+  return res.status(500).json({ message: "Internal server error" });
+
 }
