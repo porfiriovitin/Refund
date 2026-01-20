@@ -11,6 +11,12 @@ const refundsSchema = z.object({
 
 const querySchema = z.object({
     name: z.string().optional().default(""),
+    page: z.coerce.number().optional().default(1),
+    perPage: z.coerce.number().optional().default(10),
 })
 
-export {refundsSchema, querySchema}
+const paramsSchema = z.object({ 
+    id: z.number().int().positive({ message: "ID must be a positive integer" }),
+});
+
+export {refundsSchema, querySchema, paramsSchema}

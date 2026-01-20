@@ -1,10 +1,10 @@
-import { Request, Response, NextFunction } from "express";
-import { refundsSchema, querySchema } from "@/schemas/refunds-schema.js";
+import { Request, Response } from "express";
+import { refundsSchema, querySchema, paramsSchema } from "@/schemas/refunds-schema.js";
 import { prisma } from "@/database/prisma.js";
 import { AppError } from "@/utils/AppError.js";
 
 class RefundsController {
-    async create(req: Request, res: Response, next: NextFunction) {
+    async create(req: Request, res: Response) {
 
         const isValidBody = refundsSchema.safeParse(req.body);
 
@@ -31,7 +31,7 @@ class RefundsController {
         return res.status(201).json({ message: "Refund created successfully" });
     }
 
-    async index(req: Request, res: Response, next: NextFunction) {
+    async index(req: Request, res: Response) {
 
         const isValidQuery = querySchema.safeParse(req.query);
 
@@ -39,9 +39,13 @@ class RefundsController {
             throw isValidQuery.error;
         }
 
-        const { name } = isValidQuery.data;
+        const { name, page, perPage } = isValidQuery.data;
+
+        const skip = (page - 1) * perPage;
 
         const refunds = await prisma.refunds.findMany({
+            skip,
+            take: perPage,
             where: {
                 user: {
                     name: {
@@ -59,7 +63,58 @@ class RefundsController {
             },
         });
 
-        res.json(refunds);
+        const totalCount = await prisma.refunds.count({
+            where: {
+                user: {
+                    name: {
+                        contains: name.trim(),
+                    }
+                }
+            }
+        });
+
+        const totalPages = Math.ceil(totalCount / perPage);
+
+        res.json({
+            refunds,
+            pagination:{
+                page, 
+                perPage,
+                totalCount,
+                totalPages: totalPages > 0 ? totalPages : 1,
+            }
+        });
+    }
+
+    async show(req: Request, res: Response) {
+        const isValidParams = paramsSchema.safeParse(req.params);
+
+        if (!isValidParams.success) {
+            throw isValidParams.error;
+        }
+
+        const { id } = isValidParams.data;
+
+        const refund = await prisma.refunds.findFirst({
+            where: { id },
+            include: {
+                user: {
+                    select: {
+                        name: true,
+                        email: true,
+                    }
+                }
+            },
+
+            }
+        );
+
+        if (!refund) {
+            throw new AppError("Refund not found", 404);
+        }
+
+        res.json({ refund });
+
     }
 }
 
