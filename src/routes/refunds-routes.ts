@@ -6,5 +6,6 @@ const refundsRoutes = Router();
 const refundsController = new RefundsController();
 
 refundsRoutes.post("/", verifyAuthorization(["employee"]), refundsController.create);
+refundsRoutes.get("/", verifyAuthorization(["manager"]), refundsController.index);
 
 export { refundsRoutes };
